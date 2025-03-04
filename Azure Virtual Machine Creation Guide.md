@@ -30,7 +30,7 @@ Before you begin, ensure you have the following:
 
    - **Instance Details**:
 
-     - **VM Name**: `demo3-ai`
+     - **VM Name**: `demo3-ai` (example)
 
      - **Region**: Central India
 
