@@ -1,104 +1,130 @@
 # Azure Virtual Machine Creation Guide
-
-## Overview
-This guide will help you create a Virtual Machine (VM) in Microsoft Azure. It includes all the steps to set up a basic VM, configure networking, and connect to it via remote desktop or SSH.
-
----
-
+ 
 ## Prerequisites
-- **Azure Subscription**: You need an active Azure account. If you don't have one, you can create a free account [here](https://azure.microsoft.com/en-us/free/).
-- **Azure Portal Access**: You need to be able to access the [Azure Portal](https://portal.azure.com/).
-- **Basic Knowledge**: Familiarity with virtual machines and networking concepts.
 
+Before you begin, ensure you have the following:
+
+- **Azure Subscription**: Ensure you have an active Azure subscription (e.g., Microsoft Azure Sponsorship).
+
+- **Access to the Azure Portal**: You must be logged into the [Azure Portal](https://portal.azure.com/).
+
+- **SSH Public Key**: You should have an existing SSH public key stored in Azure (for authentication).
+ 
 ---
+ 
+## Steps to Create a Virtual Machine in Azure
+ 
+### 1. **Create the Virtual Machine**
 
-## Steps to Create a VM in Azure
+   - **Navigate to the Azure Portal** and log in with your Azure credentials.
 
-### 1. **Log in to the Azure Portal**
-   - Open the [Azure Portal](https://portal.azure.com/).
-   - Sign in with your Azure account credentials.
+   - In the search bar, type and select **"Virtual Machines"**.
 
-### 2. **Navigate to Virtual Machines**
-   - In the left-hand menu, click on **"Virtual machines"**.
-   - If it's not listed, use the search bar at the top to search for "Virtual Machines".
+   - Click on **"Create"** and then select **"Azure Virtual Machine"**.
+ 
+### 2. **Basic Configuration**
 
-### 3. **Create a New Virtual Machine**
-   - On the Virtual Machines page, click **"Create"** and then select **"Azure virtual machine"**.
-   - You will be directed to the "Create a Virtual Machine" wizard.
+   - **Subscription**: Select **Microsoft Azure Sponsorship**.
 
-### 4. **Configure the Basic Settings**
-   - **Subscription**: Choose the subscription you want to use.
-   - **Resource Group**: Select an existing resource group or create a new one.
-   - **VM Name**: Enter a name for your VM (e.g., `MyAzureVM`).
-   - **Region**: Choose the Azure region where you want your VM to be located (e.g., `East US`).
-   - **Availability Options**: Leave as default unless you need a specific setup.
-   - **Image**: Choose the OS you want to install on your VM (e.g., Windows Server, Ubuntu).
-   - **Size**: Select the appropriate size based on your workload (e.g., Standard B1s for a small VM).
-   - **Authentication Type**: 
-     - **Password**: Provide a username and password for the VM.
-     - **SSH Public Key** (for Linux VMs): Provide an SSH key.
-   - **Public IP**: Choose "Create new" to have a new public IP for remote access.
+   - **Resource Group**: Select or create a new resource group, for example, `RG_AIBOX_DEV`.
 
-### 5. **Configure Disks**
-   - **OS Disk Type**: Choose the disk type (e.g., SSD, HDD).
-   - **Data Disks**: Optionally, you can attach data disks for additional storage if needed.
+   - **Instance Details**:
 
-### 6. **Networking Configuration**
-   - **Virtual Network**: Select an existing virtual network or create a new one.
-   - **Subnet**: Choose a subnet from the selected virtual network or create a new one.
-   - **Network Security Group**: Create a new security group or use an existing one to manage access to your VM.
-   - **Public IP**: Ensure that a public IP is assigned if you want to connect to the VM over the internet.
+     - **VM Name**: `demo3-ai`
 
-### 7. **Management Options**
-   - Configure monitoring options like boot diagnostics, and backup if necessary.
-   - Enable **Auto-shutdown** to avoid running the VM unnecessarily.
+     - **Region**: Central India
 
-### 8. **Review + Create**
-   - Once all configurations are complete, review the settings.
-   - If everything looks good, click **"Create"**.
+     - **Availability Option**: 
 
-   Azure will begin provisioning your virtual machine. This might take a few minutes.
+       - Choose **Virtual Machine scale set / Availability Zone / No infra**.
 
-### 9. **Access the VM**
-   - Once the VM has been created, go to the **Virtual Machines** section in the Azure Portal.
-   - Select the VM you just created.
-   - To access the VM:
-     - **For Windows VMs**: Use **Remote Desktop Protocol (RDP)**.
-       - Download the RDP file from the "Connect" tab and use your credentials to log in.
-     - **For Linux VMs**: Use **SSH**.
-       - Open your terminal and use the command: 
-         ```
-         ssh username@<your-vm-public-ip>
-         ```
+       - **Zone Option**: Select **Self selected** and choose **at least 2 zones**.
 
+     - **Security Type**: Trusted launch VM
+
+     - **Image**: Select **Ubuntu Server 22**
+
+     - **VM Architecture**: x64
+
+     - **Azure Spot Discount**: Skip this option (Not for Production).
+
+     - **Size**: Select **Standard B8as** with **8 CPUs** and **32 GiB RAM** (requires at least 8 vCPUs and 32 GiB of RAM).
+
+   - **Administrator Account**:
+
+     - **Authentication Type**: Select **SSH public key**.
+
+     - **Username**: `qylis` (default).
+
+     - **SSH Public Key Source**: Use an existing key stored in Azure.
+
+     - **Stored Keys**: Select **AIBOX-DATABASE-STORAGE.pem**.
+
+   - **Spot**: Skip this option.
+ 
+   - **Inbound Port Rules**:
+
+     - **Public Inbound Ports**: Select **Allow selected ports**.
+
+     - **Select Inbound Ports**: Choose **HTTP**, **HTTPS**, and **SSH**.
+ 
+### 3. **Disks Configuration**
+
+   - **Encryption at Host**: Set to **False** (change in future as needed).
+
+   - **OS Disk**:
+
+     - **Size**: Default 30 GiB.
+
+     - **Type**: **Premium SSD (locally redundant)**.
+
+     - **Key Management**: Set to **Platform managed key**.
+ 
+### 4. **Networking Configuration**
+
+   - **Network Interface**:
+
+     - **Virtual Network**: Choose to **create new** or **use an existing one** (based on your requirement).
+
+     - **Subnet**: Create or use an existing subnet.
+
+     - **Public IP**: Automatically picked.
+
+     - **Network Security Group (NSG)**: Set to **Basic**.
+
+   - **Public Inbound Ports**: Select the same inbound ports as selected in the Basic Configuration (HTTP, HTTPS, SSH).
+ 
+   - **Load Balancing**: Select **None** (unless needed).
+ 
+### 5. **Management Configuration**
+
+   - The **Management**, **Monitoring**, and **Advanced** options are automatically selected. These can be reviewed and adjusted based on your needs.
+ 
+### 6. **Tags**:
+
+   - Tags are automatically selected, but you can modify or add additional tags as needed.
+ 
+### 7. **Review & Create**
+
+   - **Review**: Go over the configuration details one last time.
+
+   - If everything looks correct, click **Create** to begin provisioning your VM.
+ 
 ---
-
-## Additional Configuration (Optional)
-
-- **Set Up a Static IP**: 
-  If you need a fixed IP address for your VM, navigate to the **Public IP Address** section and configure a static IP.
-
-- **Install Software**:
-  After accessing your VM, you can install any necessary software, such as a web server, database, or development tools, based on your use case.
-
-- **Scaling**:
-  You can change the size of your VM after creation by selecting the "Size" option under the VM's settings.
-
-- **Backup and Restore**:
-  Configure backup services in the "Backup" tab to ensure your VM data is regularly backed up.
-
----
-
+ 
 ## Conclusion
-Congratulations! You have successfully created and configured a Virtual Machine on Azure. From here, you can install applications, configure your environment, and scale as needed.
 
+You have successfully configured and created a Virtual Machine in Azure with the specified settings. From here, you can access your VM, install necessary software, and scale the resources as required.
+ 
 ---
-
+ 
 ## Troubleshooting
-- **RDP/SSH Connection Issues**: Ensure the VM’s firewall rules and network security group (NSG) allow RDP or SSH traffic (port 3389 for RDP, port 22 for SSH).
-- **VM Not Starting**: Check the "Boot Diagnostics" and "Logs" to diagnose the issue.
 
-For further assistance, refer to the [Azure documentation](https://docs.microsoft.com/en-us/azure/virtual-machines/).
+- **RDP/SSH Connection Issues**: Ensure the network security group (NSG) and firewall settings allow RDP or SSH traffic on the correct ports (22 for SSH, 3389 for RDP).
 
----
+- **VM Not Starting**: If the VM doesn't start or shows an error, check the boot diagnostics and logs in the Azure portal for troubleshooting.
+ 
+For more detailed information, refer to the [Azure Virtual Machines Documentation](https://docs.microsoft.com/en-us/azure/virtual-machines/).
+
+Page not found
  
