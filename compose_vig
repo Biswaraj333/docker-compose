@@ -522,10 +522,10 @@ services:
       AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@airflow-postgres/airflow
       AIRFLOW__CELERY__RESULT_BACKEND: db+postgresql://airflow:airflow@airflow-postgres/airflow
       AIRFLOW__CELERY__BROKER_URL: redis://:@airflow-redis:6379/0
-      AIRFLOW__METRICS__OTEL_ON: True
+      AIRFLOW__METRICS__OTEL_ON: "True"
       AIRFLOW__METRICS__OTEL_HOST: otel-collector
       AIRFLOW__METRICS__OTEL_PORT: 4318
-      AIRFLOW__TRACES__OTEL_ON: True
+      AIRFLOW__TRACES__OTEL_ON: "True"
       AIRFLOW__TRACES__OTEL_HOST: otel-collector
       AIRFLOW__TRACES__OTEL_PORT: 4318
     volumes:
@@ -551,10 +551,10 @@ services:
       AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@airflow-postgres/airflow
       AIRFLOW__CELERY__RESULT_BACKEND: db+postgresql://airflow:airflow@airflow-postgres/airflow
       AIRFLOW__CELERY__BROKER_URL: redis://:@airflow-redis:6379/0
-      AIRFLOW__METRICS__OTEL_ON: True
+      AIRFLOW__METRICS__OTEL_ON: "True"
       AIRFLOW__METRICS__OTEL_HOST: otel-collector
       AIRFLOW__METRICS__OTEL_PORT: 4318
-      AIRFLOW__TRACES__OTEL_ON: True
+      AIRFLOW__TRACES__OTEL_ON: "True"
       AIRFLOW__TRACES__OTEL_HOST: otel-collector
       AIRFLOW__TRACES__OTEL_PORT: 4318
     volumes:
