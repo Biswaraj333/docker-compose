@@ -41,8 +41,7 @@ services:
       - ./traefik:/etc/traefik
       - ./certs:/certs:ro
       - ./logs:/var/log/traefik
-    networks:
-      - traefik_net
+
 
 
   ui:
@@ -83,8 +82,7 @@ services:
 
     depends_on:
       - core
-    networks:
-      - traefik_net
+
 
   postgres:
     # docker compose --profile dev_R up   # remote-registry aibox-image used in docker-compose
@@ -108,8 +106,7 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
-    networks:
-      - traefik_net
+    
 
 
   pgadmin:
@@ -125,8 +122,7 @@ services:
       - "5050:80"
     depends_on:
       - postgres
-    networks:
-      - traefik_net
+    
 
 
 
@@ -148,17 +144,12 @@ services:
       - "traefik.http.routers.core.tls=true"
       - "traefik.http.routers.core.entrypoints=websecure"
       - "traefik.http.routers.core.middlewares=ip-filter@file"
-    networks:
-      - traefik_net
+    
     depends_on:
-      minio:
-        condition: service_healthy   # This ensures aibox only starts after minio is healthy
-      postgres:
-        condition: service_healthy    # This ensures aibox only starts after postgres is healthy
-      kafka:
-        condition: service_healthy    # This ensures aibox only starts after kafka is healthy
-      nats:
-        condition: service_started    # This ensures aibox only starts after NATS is healthy
+      - minio
+      - postgres
+      - kafka
+      - nats
 
 
   apps:
@@ -186,11 +177,10 @@ services:
       #- "traefik.http.middlewares.apps-debug.debugHeaders.verbose=true"
     ports:
       - "8081:8080"
-    networks:
-      - traefik_net
+    
     depends_on:
-      postgres:
-        condition: service_healthy 
+      - postgres
+        
 
 
   infer:
@@ -222,8 +212,6 @@ services:
       - "traefik.http.routers.infer.tls=true"
       - "traefik.http.routers.infer.entrypoints=websecure"
       - "traefik.http.routers.infer.middlewares=ip-filter@file"
-    networks:
-      - traefik_net
 
   redis:
     image: redis:latest
@@ -236,8 +224,7 @@ services:
       interval: 5s
       timeout: 3s
       retries: 3
-    networks:
-      - traefik_net
+
 
   redisinsight:
     image: redislabs/redisinsight:latest
@@ -245,8 +232,7 @@ services:
     profiles: ["full2"]
     ports:
       - "8001:8001"
-    networks:
-      - traefik_net
+
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.redis-gui.rule=Host(`demo.ai.qylis.com`) && PathPrefix(`/sfjdfjdfhnnfmnnjv`)"
@@ -287,10 +273,8 @@ services:
     #   memlock: -1
     #   stack: 67108864
     depends_on:
-      redis:
-        condition: service_healthy
-    networks:
-      - traefik_net
+      - redis
+
   minio:
     container_name: minio
     profiles: ["full"]
@@ -311,8 +295,7 @@ services:
     entrypoint: /bin/sh -c
     command: -c 'minio server --console-address ":9001" /data'
     restart: unless-stopped
-    networks:
-      - traefik_net
+
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
       interval: 30s
@@ -359,11 +342,9 @@ services:
     ports:
       - "9092:9092"
       - "9093:9093"
-    networks:
-      - traefik_net
+
     depends_on:
-      zookeeper:
-        condition: service_healthy
+      - zookeeper
     #restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "kafka-topics --bootstrap-server localhost:9092 --list --command-config /etc/kafka/client.properties || exit 1"]
@@ -396,8 +377,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-    networks:
-      - traefik_net
+
     ports:
       - "2181:2181"
     #restart: unless-stopped
@@ -413,8 +393,7 @@ services:
     environment:
       - discovery.type=single-node
       - xpack.security.enabled=false
-    networks:
-      - traefik_net
+
     healthcheck:
       test: ["CMD-SHELL", "curl -s http://localhost:9200 >/dev/null 2>&1 || exit 1"]
       interval: 10s
@@ -429,10 +408,8 @@ services:
       ELASTICSEARCH_HOSTS: http://elasticsearch:9200
       XPACK_SECURITY_ENABLED: "false"
     depends_on:
-      elasticsearch:
-        condition: service_healthy
-    networks:
-      - traefik_net
+      - elasticsearch
+
     healthcheck:
       test: ["CMD-SHELL", "curl -s http://localhost:5601 >/dev/null 2>&1 || exit 1"]
       interval: 10s
@@ -448,11 +425,10 @@ services:
       - "4318:4318"  # OTLP HTTP receiver
       - "4317:4317"  # OTLP gRPC receiver
       - "8889:8889"  # Prometheus metrics
-    networks:
-      - traefik_net
+
     depends_on:
-      elasticsearch:
-        condition: service_healthy
+      - elasticsearch
+        
     healthcheck:
       test: ["CMD", "wget", "--spider", "-q", "localhost:13133"]
       interval: 10s
@@ -468,8 +444,7 @@ services:
       - "16686:16686"  # UI
       - "4319:4318"    # OTLP HTTP
       - "4320:4317"    # OTLP gRPC
-    networks:
-      - traefik_net
+
 
 # Add these services to your docker-compose.yml
 
@@ -486,8 +461,7 @@ services:
       test: ["CMD", "pg_isready", "-U", "airflow"]
       interval: 10s
       retries: 5
-    networks:
-      - traefik_net
+
     ports:
       - "5433:5432"  # Different port from your existing postgres
 
@@ -500,15 +474,12 @@ services:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
       retries: 50
-    networks:
-      - traefik_net
+
 
 
   airflow-webserver:
     profiles: ["full", "airflow", "obs_full"]
-    build:
-      context: ./airflow
-      dockerfile: Dockerfile
+    image: qylis_airflow
     environment:
       AIRFLOW__CORE__EXECUTOR: CeleryExecutor
       AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@airflow-postgres/airflow
@@ -533,12 +504,9 @@ services:
       timeout: 10s
       retries: 5
     depends_on:
-      airflow-postgres:
-        condition: service_healthy
-      airflow-redis:
-        condition: service_healthy
-    networks:
-      - traefik_net
+      - airflow-postgres
+      - airflow-redis
+
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.airflow.rule=Host(`${AIRFLOW_DOMAIN:-airflow.localhost}`)"
@@ -548,9 +516,7 @@ services:
 
   airflow-scheduler:
     profiles: ["full", "airflow", "obs_full"]
-    build:
-      context: ./airflow
-      dockerfile: Dockerfile
+    image: qylis_airflow
     environment:
       AIRFLOW__CORE__EXECUTOR: CeleryExecutor
       AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@airflow-postgres/airflow
@@ -573,18 +539,13 @@ services:
       timeout: 10s
       retries: 5
     depends_on:
-      airflow-postgres:
-        condition: service_healthy
-      airflow-redis:
-        condition: service_healthy
-    networks:
-      - traefik_net
+      - airflow-postgres
+      - airflow-redis
+
 
   airflow-worker:
     profiles: ["full", "airflow", "obs_full"]
-    build:
-      context: ./airflow
-      dockerfile: Dockerfile
+    image: qylis_airflow
     environment:
       AIRFLOW__CORE__EXECUTOR: CeleryExecutor
       AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@airflow-postgres/airflow
@@ -609,18 +570,13 @@ services:
       timeout: 10s
       retries: 5
     depends_on:
-      airflow-postgres:
-        condition: service_healthy
-      airflow-redis:
-        condition: service_healthy
-    networks:
-      - traefik_net
+      - airflow-postgres
+      - airflow-redis
+        
 
   airflow-init:
     profiles: ["full", "airflow", "obs_full"]
-    build:
-      context: ./airflow
-      dockerfile: Dockerfile
+    image: qylis_airflow
     environment:
       AIRFLOW__CORE__EXECUTOR: CeleryExecutor
       AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@airflow-postgres/airflow
@@ -638,10 +594,9 @@ services:
           --email admin@example.com
       "
     depends_on:
-      airflow-postgres:
-        condition: service_healthy
-    networks:
-      - traefik_net 
+      - airflow-postgres
+        
+ 
 
   nats:
     container_name: nats
@@ -662,8 +617,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-    networks:
-      - traefik_net
+
     volumes:
       - nats-data:/nats-data  # For persistence
     environment:
